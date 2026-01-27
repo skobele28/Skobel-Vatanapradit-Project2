@@ -113,7 +113,9 @@ void app_main(void)
         (adc1_handle, LDR_SENSOR, &ldr_adc_bits);
         
         adc_cali_raw_to_voltage
-        (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV)
+        (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV);
+
+        printf("%d\n", ldr_adc_mV);
 
 
         // Task Delay to prevent watchdog
@@ -184,8 +186,13 @@ void app_main(void)
             if(adc_mV < 1000){
                 gpio_set_level(HEADLIGHT_LED,0);
             }
-            else if(adc_mV >= 1000 && adc_mV < 2250){
-                gpio_set_level(HEADLIGHT_LED, 1);
+            else if(adc_mV >= 1000 && adc_mV < 2200){
+                if (ldr_adc_mV > 2000){
+                    gpio_set_level(HEADLIGHT_LED, 0);
+                }
+                else if (ldr_adc_mV < 1100){
+                    gpio_set_level(HEADLIGHT_LED, 1);
+                }
             }
             else if(adc_mV >= 2250){
                 gpio_set_level(HEADLIGHT_LED,1);
