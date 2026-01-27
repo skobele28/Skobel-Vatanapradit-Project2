@@ -15,6 +15,8 @@
 #define LDR_SENSOR      ADC_CHANNEL_0
 #define ADC_ATTEN       ADC_ATTEN_DB_12
 #define BITWIDTH        ADC_BITWIDTH_12
+#define HIGHBEAM_CONTROL   GPIO_NUM_14
+#define HIGHBEAM_LED       GPIO_NUM_2
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
@@ -24,6 +26,7 @@ bool ignition = false; //Detects when the ignition is turned on
 int executed = 0; //keep track of print statements
 int ready_led = 0; //keep track of whether ready_led should be on or off
 int ignition_off = 0; // keep track of whether the ignition can be turned off
+int highbeam = 0;   // keep track of high beam control
 
 void app_main(void)
 {
@@ -74,6 +77,15 @@ void app_main(void)
     // set headlight pin config to output, level 0
     gpio_reset_pin(HEADLIGHT_LED);
     gpio_set_direction(HEADLIGHT_LED, GPIO_MODE_OUTPUT);
+
+    // set high beam control pin config to input and internal pullup
+    gpio_reset_pin(HIGHBEAM_CONTROL);
+    gpio_set_direction(HIGHBEAM_CONTROL, GPIO_MODE_INPUT);
+    gpio_pullup_en(HIGHBEAM_CONTROL);
+
+    // set high beam led pin config to output, level 0
+    gpio_reset_pin(HIGHBEAM_LED);
+    gpio_set_direction(HIGHBEAM_LED, GPIO_MODE_OUTPUT);
 
     adc_oneshot_unit_init_cfg_t init_config1 = {
         .unit_id = ADC_UNIT_1,
@@ -127,6 +139,7 @@ void app_main(void)
         dbelt = gpio_get_level(DBELT_PIN)==0;
         pbelt = gpio_get_level(PBELT_PIN)==0;
         ignition = gpio_get_level(IGNITION_BUTTON)==0;
+        highbeam = gpio_get_level(HIGHBEAM_CONTROL)==0;
 
         // if the driver seat button is pressed, print the welcome message once
         if (dseat){
@@ -185,23 +198,39 @@ void app_main(void)
         if(executed == 2){
             if(adc_mV < 1000){
                 gpio_set_level(HEADLIGHT_LED,0);
+                gpio_set_level(HIGHBEAM_LED, 0);
             }
             else if(adc_mV >= 1000 && adc_mV < 2200){
                 if (ldr_adc_mV > 2000){
                     vTaskDelay(2000/portTICK_PERIOD_MS);
                     if(ldr_adc_mV > 2000){
                         gpio_set_level(HEADLIGHT_LED, 0);
+                        gpio_set_level(HIGHBEAM_LED, 0);
                     }
                 }
-                else if (ldr_adc_mV < 1100){
+                else if (ldr_adc_mV < 1550){
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
-                    if (ldr_adc_mV < 1100){
+                    if (ldr_adc_mV < 1550){
                         gpio_set_level(HEADLIGHT_LED, 1);
+                        if (highbeam == 0){
+                            gpio_set_level(HIGHBEAM_LED, 1);
+                        }
+                        else {
+                            gpio_set_level(HIGHBEAM_LED, 0);
+                        }
+                        
                     }
                 }
             }
             else if(adc_mV >= 2250){
                 gpio_set_level(HEADLIGHT_LED,1);
+                if (highbeam == 0){
+                    gpio_set_level(HIGHBEAM_LED, 1);
+                }
+                else{
+                    gpio_set_level(HIGHBEAM_LED, 0);
+                }
+                
             }
         }
 
