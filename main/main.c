@@ -12,6 +12,7 @@
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
 #define HEADLIGHT_LED GPIO_NUM_13   // headlight LED pin 13
 #define HEADLIGHT_ADC     ADC_CHANNEL_8
+#define LDR_SENSOR      ADC_CHANNEL_0
 #define ADC_ATTEN       ADC_ATTEN_DB_12
 #define BITWIDTH        ADC_BITWIDTH_12
 
@@ -27,8 +28,10 @@ int ignition_off = 0; // keep track of whether the ignition can be turned off
 void app_main(void)
 {
 
-    int adc_bits;                        // ADC reading (bits)
-    int adc_mV;                          // ADC reading (mV)
+    int adc_bits;                        // potentiometer ADC reading (bits)
+    int adc_mV;                          // potentiometer ADC reading (mV)
+    int ldr_adc_bits;                   // LDR ADC reading (bits)
+    int ldr_adc_mV;                     // LDR ADC reading (mV)
 
 
     // set driver seat pin config to input and internal pullup
@@ -85,6 +88,9 @@ void app_main(void)
     adc_oneshot_config_channel                          // Configure channel
     (adc1_handle, HEADLIGHT_ADC, &config);
 
+    adc_oneshot_config_channel
+    (adc1_handle, LDR_SENSOR, &config);
+
     adc_cali_curve_fitting_config_t cali_config = {
         .unit_id = ADC_UNIT_1,
         .chan = HEADLIGHT_ADC,
@@ -102,6 +108,12 @@ void app_main(void)
         
         adc_cali_raw_to_voltage
         (adc1_cali_chan_handle, adc_bits, &adc_mV);         // Convert to mV
+
+        adc_oneshot_read
+        (adc1_handle, LDR_SENSOR, &ldr_adc_bits);
+        
+        adc_cali_raw_to_voltage
+        (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV)
 
 
         // Task Delay to prevent watchdog
@@ -140,18 +152,6 @@ void app_main(void)
                 executed = 2;
             }
         }
-
-        if(executed == 2){
-            if(adc_mV < 1000){
-                gpio_set_level(HEADLIGHT_LED,0);
-            }
-            else if(adc_mV >= 1000 && adc_mV < 2250){
-                gpio_set_level(HEADLIGHT_LED, 1);
-            }
-            else if(adc_mV >= 2250){
-                gpio_set_level(HEADLIGHT_LED,1);
-            }
-        }
             
         // otherwise (at least one condition is not satisfied)
         else{
@@ -177,6 +177,18 @@ void app_main(void)
                         printf("Drivers seatbelt not fastened.\n");
                     }
                 
+            }
+        }
+
+        if(executed == 2){
+            if(adc_mV < 1000){
+                gpio_set_level(HEADLIGHT_LED,0);
+            }
+            else if(adc_mV >= 1000 && adc_mV < 2250){
+                gpio_set_level(HEADLIGHT_LED, 1);
+            }
+            else if(adc_mV >= 2250){
+                gpio_set_level(HEADLIGHT_LED,1);
             }
         }
 
