@@ -9,7 +9,7 @@
 #define READY_LED  GPIO_NUM_10      // ready LED pin 10
 #define SUCCESS_LED  GPIO_NUM_11    // success LED pin 11
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
-#define HEADLIGHT_LED GPIO_NUM_13
+#define HEADLIGHT_LED GPIO_NUM_13   // headlight LED pin 13
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
@@ -98,6 +98,7 @@ void app_main(void)
                 // print engine started message once
                 printf("Engine started!\n");
                 executed = 2;
+                gpio_set_level(HEADLIGHT_LED, 1);
             }
         }
             
