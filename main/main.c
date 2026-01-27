@@ -9,6 +9,7 @@
 #define READY_LED  GPIO_NUM_10      // ready LED pin 10
 #define SUCCESS_LED  GPIO_NUM_11    // success LED pin 11
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
+#define HEADLIGHT_LED GPIO_NUM_13
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
@@ -58,6 +59,10 @@ void app_main(void)
     gpio_reset_pin(ALARM_PIN);
     gpio_set_direction(ALARM_PIN, GPIO_MODE_OUTPUT);
 
+    // set headlight pin config to output, level 0
+    gpio_reset_pin(HEADLIGHT_LED);
+    gpio_set_direction(HEADLIGHT_LED, GPIO_MODE_OUTPUT);
+
     while (1){
         // Task Delay to prevent watchdog
         vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -105,7 +110,7 @@ void app_main(void)
             if (ignition==true && executed != 2){
                     // turn on alarm buzzer for 5 seconds
                     gpio_set_level(ALARM_PIN, 1);
-                    printf("Ignition inhibited");
+                    printf("Ignition inhibited.\n");
                     // check which conditions are not met, print corresponding message
                     if (!pseat){
                         printf("Passenger seat not occupied.\n");
@@ -119,6 +124,7 @@ void app_main(void)
                     if (!dbelt){
                         printf("Drivers seatbelt not fastened.\n");
                     }
+                
             }
         }
 
