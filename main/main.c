@@ -104,8 +104,6 @@ void app_main(void)
             if (ignition==true && executed != 2){
                     // turn on alarm buzzer for 5 seconds
                     gpio_set_level(ALARM_PIN, 1);
-                    vTaskDelay(5000 / portTICK_PERIOD_MS);
-                    gpio_set_level(ALARM_PIN, 0);
                     printf("Ignition inhibited");
                     // check which conditions are not met, print corresponding message
                     if (!pseat){
