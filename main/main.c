@@ -10,6 +10,7 @@
 #define SUCCESS_LED  GPIO_NUM_11    // success LED pin 11
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
 #define HEADLIGHT_LED GPIO_NUM_13   // headlight LED pin 13
+#define HEADLIGHT_CONTROL ADC_CHANNEL_4
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
