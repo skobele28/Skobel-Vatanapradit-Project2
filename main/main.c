@@ -60,7 +60,7 @@ void app_main(void)
 
     while (1){
         // Task Delay to prevent watchdog
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
 
         // initialize variables in relation to GPIO pin inputs
         dseat = gpio_get_level(DSEAT_PIN)==0;
