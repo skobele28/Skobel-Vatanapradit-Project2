@@ -188,10 +188,16 @@ void app_main(void)
             }
             else if(adc_mV >= 1000 && adc_mV < 2200){
                 if (ldr_adc_mV > 2000){
-                    gpio_set_level(HEADLIGHT_LED, 0);
+                    vTaskDelay(2000/portTICK_PERIOD_MS);
+                    if(ldr_adc_mV > 2000){
+                        gpio_set_level(HEADLIGHT_LED, 0);
+                    }
                 }
                 else if (ldr_adc_mV < 1100){
-                    gpio_set_level(HEADLIGHT_LED, 1);
+                    vTaskDelay(1000 / portTICK_PERIOD_MS);
+                    if (ldr_adc_mV < 1100){
+                        gpio_set_level(HEADLIGHT_LED, 1);
+                    }
                 }
             }
             else if(adc_mV >= 2250){
