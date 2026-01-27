@@ -89,6 +89,7 @@ void app_main(void)
                 // turn on ignition LED and turn off ready LED
                 gpio_set_level(SUCCESS_LED, 1);
                 gpio_set_level(READY_LED, 0);
+                gpio_set_level(ALARM_PIN, 0);
                 // print engine started message once
                 printf("Engine started!\n");
                 executed = 2;
