@@ -26,6 +26,7 @@ bool ignition = false; //Detects when the ignition is turned on
 int executed = 0; //keep track of print statements
 int ready_led = 0; //keep track of whether ready_led should be on or off
 int ignition_off = 0; // keep track of whether the ignition can be turned off
+int lowbeam = 0;    // keep track of low beam status
 int highbeam = 0;   // keep track of high beam control
 
 void app_main(void)
@@ -198,40 +199,39 @@ void app_main(void)
         if(executed == 2){
             if(adc_mV < 1000){
                 gpio_set_level(HEADLIGHT_LED,0);
-                gpio_set_level(HIGHBEAM_LED, 0);
+                // gpio_set_level(HIGHBEAM_LED, 0);
+                lowbeam = 0;
             }
             else if(adc_mV >= 1000 && adc_mV < 2200){
                 if (ldr_adc_mV > 2000){
                     vTaskDelay(2000/portTICK_PERIOD_MS);
                     if(ldr_adc_mV > 2000){
                         gpio_set_level(HEADLIGHT_LED, 0);
-                        gpio_set_level(HIGHBEAM_LED, 0);
+                        // gpio_set_level(HIGHBEAM_LED, 0);
+                        lowbeam = 0;
                     }
                 }
                 else if (ldr_adc_mV < 1550){
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
                     if (ldr_adc_mV < 1550){
                         gpio_set_level(HEADLIGHT_LED, 1);
-                        if (highbeam == 0){
-                            gpio_set_level(HIGHBEAM_LED, 1);
-                        }
-                        else {
-                            gpio_set_level(HIGHBEAM_LED, 0);
+                        lowbeam = 1;
                         }
                         
                     }
                 }
+                
             }
             else if(adc_mV >= 2250){
                 gpio_set_level(HEADLIGHT_LED,1);
-                if (highbeam == 0){
-                    gpio_set_level(HIGHBEAM_LED, 1);
-                }
-                else{
-                    gpio_set_level(HIGHBEAM_LED, 0);
-                }
-                
+                lowbeam = 1;                
             }
+
+        if (lowbeam == 1 && highbeam && executed == 2){
+            gpio_set_level(HIGHBEAM_LED, 1);
+        }
+        else{
+            gpio_set_level(HIGHBEAM_LED, 0);
         }
 
         if (executed == 2 && ignition == false){
@@ -241,6 +241,7 @@ void app_main(void)
         if (ignition_off==1 && ignition == true){
             gpio_set_level(SUCCESS_LED,0);          // turn off ignition
             gpio_set_level(HEADLIGHT_LED,0);
+            gpio_set_level(HIGHBEAM_LED, 0);
             executed = 3;
         }
     }
