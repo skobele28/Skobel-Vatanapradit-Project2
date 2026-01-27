@@ -1,5 +1,6 @@
 #include "freertos/FreeRTOS.h"
 #include "driver/gpio.h"
+#include "esp_adc/adc_oneshot.h"
 
 #define PSEAT_PIN  GPIO_NUM_4       // passenger seat button pin 4
 #define DSEAT_PIN  GPIO_NUM_5       // driver seat button pin 5
@@ -10,7 +11,13 @@
 #define SUCCESS_LED  GPIO_NUM_11    // success LED pin 11
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
 #define HEADLIGHT_LED GPIO_NUM_13   // headlight LED pin 13
+<<<<<<< HEAD
 #define HEADLIGHT_CONTROL ADC_CHANNEL_4
+=======
+#define HEADLIGHT_ADC     ADC_CHANNEL_8
+#define ADC_ATTEN       ADC_ATTEN_DB_12
+#define BITWIDTH        ADC_BITWIDTH_12
+>>>>>>> potentiometer
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
@@ -23,6 +30,11 @@ int ignition_off = 0; // keep track of whether the ignition can be turned off
 
 void app_main(void)
 {
+
+    int adc_bits;                        // ADC reading (bits)
+    int adc_mV;                          // ADC reading (mV)
+
+
     // set driver seat pin config to input and internal pullup
     gpio_reset_pin(DSEAT_PIN);
     gpio_set_direction(DSEAT_PIN, GPIO_MODE_INPUT);
@@ -64,7 +76,38 @@ void app_main(void)
     gpio_reset_pin(HEADLIGHT_LED);
     gpio_set_direction(HEADLIGHT_LED, GPIO_MODE_OUTPUT);
 
+    adc_oneshot_unit_init_cfg_t init_config1 = {
+        .unit_id = ADC_UNIT_1,
+    };                                                  // Unit configuration
+    adc_oneshot_unit_handle_t adc1_handle;              // Unit handle
+    adc_oneshot_new_unit(&init_config1, &adc1_handle);  // Populate unit handle
+
+    adc_oneshot_chan_cfg_t config = {
+        .atten = ADC_ATTEN,
+        .bitwidth = BITWIDTH
+    };                                                  // Channel config
+    adc_oneshot_config_channel                          // Configure channel
+    (adc1_handle, HEADLIGHT_ADC, &config);
+
+    adc_cali_curve_fitting_config_t cali_config = {
+        .unit_id = ADC_UNIT_1,
+        .chan = HEADLIGHT_ADC,
+        .atten = ADC_ATTEN,
+        .bitwidth = BITWIDTH
+    };                                                  // Calibration config
+    adc_cali_handle_t adc1_cali_chan_handle;            // Calibration handle
+    adc_cali_create_scheme_curve_fitting                // Populate cal handle
+    (&cali_config, &adc1_cali_chan_handle);
+
     while (1){
+        
+        adc_oneshot_read
+        (adc1_handle, HEADLIGHT_ADC, &adc_bits);              // Read ADC bits
+        
+        adc_cali_raw_to_voltage
+        (adc1_cali_chan_handle, adc_bits, &adc_mV);         // Convert to mV
+
+
         // Task Delay to prevent watchdog
         vTaskDelay(10 / portTICK_PERIOD_MS);
 
@@ -99,7 +142,18 @@ void app_main(void)
                 // print engine started message once
                 printf("Engine started!\n");
                 executed = 2;
+            }
+        }
+
+        if(executed == 2){
+            if(adc_mV < 1000){
+                gpio_set_level(HEADLIGHT_LED,0);
+            }
+            else if(adc_mV >= 1000 && adc_mV < 2250){
                 gpio_set_level(HEADLIGHT_LED, 1);
+            }
+            else if(adc_mV >= 2250){
+                gpio_set_level(HEADLIGHT_LED,1);
             }
         }
             
