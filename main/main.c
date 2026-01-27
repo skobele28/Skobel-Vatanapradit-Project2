@@ -159,7 +159,7 @@ void app_main(void)
             gpio_set_level(READY_LED,0);
             ready_led = 0;
             // if ignition button is pressed while conditions are not satisfied
-            if (ignition==true && executed != 2){
+            if (ignition==true && executed < 2){
                     // turn on alarm buzzer for 5 seconds
                     gpio_set_level(ALARM_PIN, 1);
                     printf("Ignition inhibited.\n");
@@ -186,6 +186,8 @@ void app_main(void)
 
         if (ignition_off==1 && ignition == true){
             gpio_set_level(SUCCESS_LED,0);          // turn off ignition
+            gpio_set_level(HEADLIGHT_LED,0);
+            executed = 3;
         }
     }
 }
