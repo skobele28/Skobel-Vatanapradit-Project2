@@ -11,13 +11,9 @@
 #define SUCCESS_LED  GPIO_NUM_11    // success LED pin 11
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
 #define HEADLIGHT_LED GPIO_NUM_13   // headlight LED pin 13
-<<<<<<< HEAD
-#define HEADLIGHT_CONTROL ADC_CHANNEL_4
-=======
 #define HEADLIGHT_ADC     ADC_CHANNEL_8
 #define ADC_ATTEN       ADC_ATTEN_DB_12
 #define BITWIDTH        ADC_BITWIDTH_12
->>>>>>> potentiometer
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
