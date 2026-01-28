@@ -11,12 +11,13 @@
 #define SUCCESS_LED  GPIO_NUM_11    // success LED pin 11
 #define ALARM_PIN GPIO_NUM_12       // alarm pin 12
 #define HEADLIGHT_LED GPIO_NUM_13   // headlight LED pin 13
-#define HEADLIGHT_ADC     ADC_CHANNEL_8
-#define LDR_SENSOR      ADC_CHANNEL_0
-#define ADC_ATTEN       ADC_ATTEN_DB_12
-#define BITWIDTH        ADC_BITWIDTH_12
-#define HIGHBEAM_CONTROL   GPIO_NUM_14
-#define HIGHBEAM_LED       GPIO_NUM_2
+#define HIGHBEAM_CONTROL   GPIO_NUM_14  // high beam control (switch) pin 14
+#define HIGHBEAM_LED       GPIO_NUM_2   // high beam LED pin 2
+#define HEADLIGHT_ADC     ADC_CHANNEL_8 // headlight control (potentiometer) ADC1 channel 8
+#define LDR_SENSOR      ADC_CHANNEL_0   // LDR sensor (auto headlight) ADC1 channel 0
+#define ADC_ATTEN       ADC_ATTEN_DB_12 // set ADC attenuation
+#define BITWIDTH        ADC_BITWIDTH_12 // set ADC bitwidth
+
 
 bool dseat = false;  //Detects when the driver is seated 
 bool pseat = false;  //Detects when the passenger is seated
@@ -32,8 +33,8 @@ int highbeam = 0;   // keep track of high beam control
 void app_main(void)
 {
 
-    int adc_bits;                        // potentiometer ADC reading (bits)
-    int adc_mV;                          // potentiometer ADC reading (mV)
+    int adc_bits;                       // potentiometer ADC reading (bits)
+    int adc_mV;                         // potentiometer ADC reading (mV)
     int ldr_adc_bits;                   // LDR ADC reading (bits)
     int ldr_adc_mV;                     // LDR ADC reading (mV)
 
@@ -144,9 +145,9 @@ void app_main(void)
 
         // if the driver seat button is pressed, print the welcome message once
         if (dseat){
-            if (executed == 0){
+            if (executed == 0){     // if executed equals 0, print welcome message
                 printf("Welcome to enhanced alarm system model 218-W25 \n"); 
-                executed = 1;
+                executed = 1;       // set executed = 1 so welcome message only prints once
             }
         }
 
@@ -165,7 +166,7 @@ void app_main(void)
                 gpio_set_level(ALARM_PIN, 0);
                 // print engine started message once
                 printf("Engine started!\n");
-                executed = 2;
+                executed = 2;       // set executed = 2 so engine started message only prints once
             }
         }
             
@@ -196,21 +197,25 @@ void app_main(void)
             }
         }
 
+        // if iginition successful, set low beams according to potentiometer
         if(executed == 2){
+            // if potentiometer set to off, set low beam leds to off, set lowbeam = 0
             if(adc_mV < 1000){
                 gpio_set_level(HEADLIGHT_LED,0);
                 // gpio_set_level(HIGHBEAM_LED, 0);
                 lowbeam = 0;
             }
-            else if(adc_mV >= 1000 && adc_mV < 2200){
+            // if potentiometer set to auto, use LDR to determine led high/low
+            else if(adc_mV >= 1000 && adc_mV < 2250){
+                // if LDR high mV (daylight) for 2s, turn off low beams, set lowbeam = 0
                 if (ldr_adc_mV > 2000){
                     vTaskDelay(2000/portTICK_PERIOD_MS);
                     if(ldr_adc_mV > 2000){
                         gpio_set_level(HEADLIGHT_LED, 0);
-                        // gpio_set_level(HIGHBEAM_LED, 0);
                         lowbeam = 0;
                     }
                 }
+                // if LDR low mV (dusk/night) for 1s, turn on low beams, set lowbeam = 1
                 else if (ldr_adc_mV < 1550){
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
                     if (ldr_adc_mV < 1550){
@@ -220,29 +225,34 @@ void app_main(void)
                         
                     }
                 }
-                
-            }
+            // if potentiometer set to on, turn on low beams, set lowbeam = 1
             else if(adc_mV >= 2250){
                 gpio_set_level(HEADLIGHT_LED,1);
-                lowbeam = 1;                
+                lowbeam = 1;
             }
+                            
+        }
 
+        // if lowbeam on and highbeam switch activated, turn on high beams
         if (lowbeam == 1 && highbeam && executed == 2){
             gpio_set_level(HIGHBEAM_LED, 1);
         }
+        // otherwise, turn high beams off
         else{
             gpio_set_level(HIGHBEAM_LED, 0);
         }
 
+        // if ignition is successfully started and then ignition is released, set ignition_off = 1
         if (executed == 2 && ignition == false){
             ignition_off = 1;
         }
 
+        // if ignition_off = 1 and inition is pressed, turn off all LEDs
         if (ignition_off==1 && ignition == true){
             gpio_set_level(SUCCESS_LED,0);          // turn off ignition
-            gpio_set_level(HEADLIGHT_LED,0);
-            gpio_set_level(HIGHBEAM_LED, 0);
-            executed = 3;
+            gpio_set_level(HEADLIGHT_LED,0);        // turn off headlight
+            gpio_set_level(HIGHBEAM_LED, 0);        // turn off high beams
+            executed = 3;                           // set executed = 3 to keep LEDs off
         }
     }
 }
