@@ -118,16 +118,16 @@ void app_main(void)
     while (1){
         
         adc_oneshot_read
-        (adc1_handle, HEADLIGHT_ADC, &adc_bits);              // Read ADC bits
+        (adc1_handle, HEADLIGHT_ADC, &adc_bits);              // Read ADC bits (potentiometer)
         
         adc_cali_raw_to_voltage
-        (adc1_cali_chan_handle, adc_bits, &adc_mV);         // Convert to mV
+        (adc1_cali_chan_handle, adc_bits, &adc_mV);         // Convert to mV (potentiometer)
 
         adc_oneshot_read
-        (adc1_handle, LDR_SENSOR, &ldr_adc_bits);
+        (adc1_handle, LDR_SENSOR, &ldr_adc_bits);           // Read ADC bits (LDR)
         
         adc_cali_raw_to_voltage
-        (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV);
+        (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV); // Convert to mV (LDR)
 
         printf("%d\n", ldr_adc_mV);
 
