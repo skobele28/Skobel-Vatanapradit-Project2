@@ -129,7 +129,7 @@ void app_main(void)
         adc_cali_raw_to_voltage
         (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV); // Convert to mV (LDR)
 
-        printf("%d\n", ldr_adc_mV);
+        // printf("%d\n", ldr_adc_mV);
 
 
         // Task Delay to prevent watchdog
@@ -176,7 +176,7 @@ void app_main(void)
             gpio_set_level(READY_LED,0);
             ready_led = 0;
             // if ignition button is pressed while conditions are not satisfied
-            if (ignition==true && executed < 2){
+            if (ignition==true && executed != 2){
                     // turn on alarm buzzer for 5 seconds
                     gpio_set_level(ALARM_PIN, 1);
                     printf("Ignition inhibited.\n");
