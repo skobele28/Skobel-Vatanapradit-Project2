@@ -177,7 +177,7 @@ void app_main(void)
             ready_led = 0;
             // if ignition button is pressed while conditions are not satisfied
             if (ignition==true && executed < 2){
-                    // turn on alarm buzzer for 5 seconds
+                    // turn on alarm buzzer
                     gpio_set_level(ALARM_PIN, 1);
                     printf("Ignition inhibited.\n");
                     // check which conditions are not met, print corresponding message
@@ -193,8 +193,15 @@ void app_main(void)
                     if (!dbelt){
                         printf("Drivers seatbelt not fastened.\n");
                     }
+                    executed = 4;
                 
             }
+        }
+        
+        // if executed = 4 (failed ignition) and ignition button is released
+        if (ignition == false && executed == 4){
+            // reset to state after welcome message, testing for conditions
+            executed = 1;
         }
 
         // if iginition successful, set low beams according to potentiometer
@@ -208,7 +215,7 @@ void app_main(void)
             // if potentiometer set to auto, use LDR to determine led high/low
             else if(adc_mV >= 1000 && adc_mV < 2250){
                 // if LDR high mV (daylight) for 2s, turn off low beams, set lowbeam = 0
-                if (ldr_adc_mV > 2000){
+                if (ldr_adc_mV > 2000 && lowbeam == 1){
                     vTaskDelay(2000/portTICK_PERIOD_MS);
                     if(ldr_adc_mV > 2000){
                         gpio_set_level(HEADLIGHT_LED, 0);
@@ -216,7 +223,7 @@ void app_main(void)
                     }
                 }
                 // if LDR low mV (dusk/night) for 1s, turn on low beams, set lowbeam = 1
-                else if (ldr_adc_mV < 1550){
+                else if (ldr_adc_mV < 1550 && lowbeam == 0){
                     vTaskDelay(1000 / portTICK_PERIOD_MS);
                     if (ldr_adc_mV < 1550){
                         gpio_set_level(HEADLIGHT_LED, 1);
