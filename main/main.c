@@ -129,8 +129,6 @@ void app_main(void)
         adc_cali_raw_to_voltage
         (adc1_cali_chan_handle, ldr_adc_bits, &ldr_adc_mV); // Convert to mV (LDR)
 
-        // printf("%d\n", ldr_adc_mV);
-
 
         // Task Delay to prevent watchdog
         vTaskDelay(10 / portTICK_PERIOD_MS);
